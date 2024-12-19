@@ -11,7 +11,7 @@ public class ConnectFour extends JPanel {
     private static final long serialVersionUID = 1L; // to prevent serializable warning
 
     // Define named constants for the drawing graphics
-    public static final String TITLE = "Tic Tac Toe";
+    public static final String TITLE = "Connect Four";
     public static final Color COLOR_BG = Color.WHITE;
     public static final Color COLOR_BG_STATUS = new Color(216, 216, 216);
     public static final Color COLOR_CROSS = new Color(239, 105, 80);  // Red #EF6950
@@ -37,29 +37,47 @@ public class ConnectFour extends JPanel {
                 int row = mouseY / Cell.SIZE;
                 int col = mouseX / Cell.SIZE;
 
-                if (currentState == State.PLAYING) {
-                    SoundEffect.EAT_FOOD.play();
 
+
+                if (currentState == State.PLAYING) {
+                    //SoundEffect.EAT_FOOD.play();
                     if (col >= 0 && col < Board.COLS) {
                         // Look for an empty cell starting from the bottom row
                         for (int rowI = Board.ROWS -1; rowI >= 0; rowI--) {
                             if (board.cells[rowI][col].content == Seed.NO_SEED) {
                                 board.cells[rowI][col].content = currentPlayer; // Make a move
-                                board.stepGame(currentPlayer, rowI, col); // update state
+                                //board.stepGame(currentPlayer, rowI, col); // update state
+                                // Check if the move results in a win
+                                if (board.hasWon(currentPlayer, rowI, col)) {
+                                    currentState = (currentPlayer == Seed.CROSS) ? State.CROSS_WON : State.NOUGHT_WON;
+                                    SoundEffect.YEAY.play();
+                                } else {
+                                    // Check for DRAW
+                                    boolean isDraw = true;
+                                    for (int r = 0; r < Board.ROWS; r++) {
+                                        for (int c = 0; c < Board.COLS; c++) {
+                                            if (board.cells[r][c].content == Seed.NO_SEED) {
+                                                isDraw = false;
+                                                break;
+                                            }
+                                        }
+                                        if (!isDraw) break;
+                                    }
+                                    currentState = isDraw ? State.DRAW : State.PLAYING;
+                                }
+                                // Play the different sound
+                                if (currentPlayer == Seed.CROSS) {
+                                    SoundEffect.CROSS.play();
+                                } else {
+                                    SoundEffect.NOUGHT.play();
+                                }
                                 // Switch player
                                 currentPlayer = (currentPlayer == Seed.CROSS) ? Seed.NOUGHT : Seed.CROSS;
                                 break;
                             }
                         }
                     }
-                    /*
-                    if (row >= 0 && row < Board.ROWS && col >= 0 && col < Board.COLS
-                            && board.cells[row][col].content == Seed.NO_SEED) {
-                        // Update cells[][] and return the new game state after the move
-                        currentState = board.stepGame(currentPlayer, row, col);
-                        // Switch player
-                        currentPlayer = (currentPlayer == Seed.CROSS) ? Seed.NOUGHT : Seed.CROSS;
-                    } */
+
                 } else {        // game over
                     newGame();  // restart the game
                     SoundEffect.DIE.play();
@@ -125,14 +143,13 @@ public class ConnectFour extends JPanel {
             statusBar.setText("'X' Won! Click to play again.");
         } else if (currentState == State.NOUGHT_WON) {
             statusBar.setForeground(Color.RED);
-            //buat sound affect yay disini
-            //SoundEffect.EAT_FOOD.play();
             statusBar.setText("'O' Won! Click to play again.");
         }
     }
 
+
     /** The entry "main" method */
-    public void play() {
+    public static void play() {
         // Run GUI construction codes in Event-Dispatching thread for thread safety
         javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {

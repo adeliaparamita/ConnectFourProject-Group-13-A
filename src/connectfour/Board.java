@@ -56,8 +56,8 @@ public class Board {
         cells[selectedRow][selectedCol].content = player;
 
         // Compute and return the new game state
-        if (cells[selectedRow][0].content == player  // 3-in-the-row
-                && cells[selectedRow][1].content == player
+        //if (cells[selectedRow][0].content == player  // 3-in-the-row
+                /*&& cells[selectedRow][1].content == player
                 && cells[selectedRow][2].content == player
                 || cells[0][selectedCol].content == player // 3-in-the-column
                 && cells[1][selectedCol].content == player
@@ -70,6 +70,11 @@ public class Board {
                 && cells[0][2].content == player
                 && cells[1][1].content == player
                 && cells[2][0].content == player) {
+                SoundEffect.YEAY.play();
+                */
+        // Compute and return the new game state
+        if (hasWon(player, selectedRow, selectedCol)) {
+            SoundEffect.YEAY.play();
             return (player == Seed.CROSS) ? State.CROSS_WON : State.NOUGHT_WON;
         } else {
             // Nobody win. Check for DRAW (all cells occupied) or PLAYING.
@@ -82,6 +87,58 @@ public class Board {
             }
             return State.DRAW; // no empty cell, it's a draw
         }
+    }
+
+    public boolean hasWon(Seed theSeed, int rowSelected, int colSelected) {
+        // Check horizontally
+        int count = 0;
+        for (int col = 0; col < COLS; ++col) {
+            if (cells[rowSelected][col].content == theSeed) {
+                ++count;
+                if (count == 4) return true;
+            } else {
+                count = 0;
+            }
+        }
+
+        // Check vertically
+        count = 0;
+        for (int row = 0; row < ROWS; ++row) {
+            if (cells[row][colSelected].content == theSeed) {
+                ++count;
+                if (count == 4) return true;
+            } else {
+                count = 0;
+            }
+        }
+
+        // Check main diagonal (\)
+        count = 0;
+        for (int delta = -3; delta <= 3; ++delta) {
+            int row = rowSelected + delta;
+            int col = colSelected + delta;
+            if (row >= 0 && row < ROWS && col >= 0 && col < COLS && cells[row][col].content == theSeed) {
+                ++count;
+                if (count == 4) return true;
+            } else {
+                count = 0;
+            }
+        }
+
+        // Check anti-diagonal (/)
+        count = 0;
+        for (int delta = -3; delta <= 3; ++delta) {
+            int row = rowSelected + delta;
+            int col = colSelected - delta;
+            if (row >= 0 && row < ROWS && col >= 0 && col < COLS && cells[row][col].content == theSeed) {
+                ++count;
+                if (count == 4) return true;
+            } else {
+                count = 0;
+            }
+        }
+
+        return false;
     }
 
     /** Paint itself on the graphics canvas, given the Graphics context */

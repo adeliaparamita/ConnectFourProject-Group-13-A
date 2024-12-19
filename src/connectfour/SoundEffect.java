@@ -21,7 +21,11 @@ import javax.sound.sampled.UnsupportedAudioFileException;
  */
 public enum SoundEffect {
     EAT_FOOD("audio/mouse-click-104737.wav"),
+    CROSS("audio/meowing.wav"),
+    NOUGHT("audio/bark.wav"),
     EXPLODE("audio/mouse-click-104737.wav"),
+    DRAW("audio/tie.wav"),
+    YEAY("audio/winner.wav"),
     DIE("audio/power-up.wav");
 
     /** Nested enumeration for specifying volume */
