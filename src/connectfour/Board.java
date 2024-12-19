@@ -1,3 +1,13 @@
+/**
+ * ES234317-Algorithm and Data Structures
+ * Semester Ganjil, 2024/2025
+ * Group Capstone Project
+ * Group #13
+ * 1- 5026231020- Diva Nesia Putri
+ * 2- 5026231114- Imanuel Dwi Prasetyo
+ * 3- 5026231196- Ni Kadek Adelia Paramita Putri
+ */
+
 package connectfour;
 
 import java.awt.*;
@@ -19,6 +29,7 @@ public class Board {
     // Define properties (package-visible)
     /** Composes of 2D array of ROWS-by-COLS Cell instances */
     Cell[][] cells;
+
 
     /** Constructor to initialize the game board */
     public Board() {
@@ -55,23 +66,6 @@ public class Board {
         // Update game board
         cells[selectedRow][selectedCol].content = player;
 
-        // Compute and return the new game state
-        //if (cells[selectedRow][0].content == player  // 3-in-the-row
-                /*&& cells[selectedRow][1].content == player
-                && cells[selectedRow][2].content == player
-                || cells[0][selectedCol].content == player // 3-in-the-column
-                && cells[1][selectedCol].content == player
-                && cells[2][selectedCol].content == player
-                || selectedRow == selectedCol     // 3-in-the-diagonal
-                && cells[0][0].content == player
-                && cells[1][1].content == player
-                && cells[2][2].content == player
-                || selectedRow + selectedCol == 2 // 3-in-the-opposite-diagonal
-                && cells[0][2].content == player
-                && cells[1][1].content == player
-                && cells[2][0].content == player) {
-                SoundEffect.YEAY.play();
-                */
         // Compute and return the new game state
         if (hasWon(player, selectedRow, selectedCol)) {
             SoundEffect.YEAY.play();
@@ -141,6 +135,7 @@ public class Board {
         return false;
     }
 
+
     /** Paint itself on the graphics canvas, given the Graphics context */
     public void paint(Graphics g) {
         // Draw the grid-lines
@@ -157,7 +152,6 @@ public class Board {
         }
 
         // Draw all the cells
-        // coba coba dehh
         for (int row = 0; row < ROWS; ++row) {
             for (int col = 0; col < COLS; ++col) {
                 cells[row][col].paint(g);  // ask the cell to paint itself

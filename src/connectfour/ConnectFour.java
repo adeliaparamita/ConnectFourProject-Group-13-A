@@ -1,3 +1,13 @@
+/**
+ * ES234317-Algorithm and Data Structures
+ * Semester Ganjil, 2024/2025
+ * Group Capstone Project
+ * Group #13
+ * 1- 5026231020- Diva Nesia Putri
+ * 2- 5026231114- Imanuel Dwi Prasetyo
+ * 3- 5026231196- Ni Kadek Adelia Paramita Putri
+ */
+
 package connectfour;
 
 import java.awt.*;
@@ -23,6 +33,7 @@ public class ConnectFour extends JPanel {
     private State currentState;  // the current state of the game
     private Seed currentPlayer;  // the current player
     private JLabel statusBar;    // for displaying status message
+    private JButton restartButton; // restart the game
 
     /** Constructor to setup the UI and game components */
     public ConnectFour() {
@@ -36,8 +47,6 @@ public class ConnectFour extends JPanel {
                 // Get the row and column clicked
                 int row = mouseY / Cell.SIZE;
                 int col = mouseX / Cell.SIZE;
-
-
 
                 if (currentState == State.PLAYING) {
                     //SoundEffect.EAT_FOOD.play();
@@ -87,22 +96,41 @@ public class ConnectFour extends JPanel {
             }
         });
 
-        // Setup the status bar (JLabel) to display status message
+        // Set the layout of the main panel
+        super.setLayout(new BorderLayout());
+
+        // Set up status bar
         statusBar = new JLabel();
         statusBar.setFont(FONT_STATUS);
         statusBar.setBackground(COLOR_BG_STATUS);
         statusBar.setOpaque(true);
-        statusBar.setPreferredSize(new Dimension(300, 30));
+        statusBar.setPreferredSize(new Dimension(300, 30)); // Adjust size as needed
         statusBar.setHorizontalAlignment(JLabel.LEFT);
         statusBar.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 12));
 
-        super.setLayout(new BorderLayout());
-        super.add(statusBar, BorderLayout.PAGE_END); // same as SOUTH
-        super.setPreferredSize(new Dimension(Board.CANVAS_WIDTH, Board.CANVAS_HEIGHT + 30));
-        // account for statusBar in height
+        // Set up restart button
+        restartButton = new JButton("Restart");
+        restartButton.setPreferredSize(new Dimension(100, 30));
+        restartButton.addActionListener(e -> {
+            newGame();  // Restart the game immediately when clicked
+            SoundEffect.DIE.play();
+            repaint();  // Refresh the view to reset the game
+        });
+
+        // Create a panel to hold the status bar and restart button horizontally
+        JPanel topPanel = new JPanel();
+        topPanel.setLayout(new BorderLayout()); // Use BorderLayout to place components left and right
+        topPanel.add(statusBar, BorderLayout.WEST); // Add status bar to the left
+        topPanel.add(restartButton, BorderLayout.EAST); // Add restart button to the right
+
+        // Add the topPanel to the main panel at the top (North)
+        super.add(topPanel, BorderLayout.SOUTH);
+
+        // Set preferred size, accounting for the top panel and the game board
+        super.setPreferredSize(new Dimension(Board.CANVAS_WIDTH, Board.CANVAS_HEIGHT + 60)); // Increased height for topPanel
         super.setBorder(BorderFactory.createLineBorder(COLOR_BG_STATUS, 2, false));
 
-        // Set up Game
+        // Initialize game
         initGame();
         newGame();
     }
@@ -114,11 +142,12 @@ public class ConnectFour extends JPanel {
 
     /** Reset the game-board contents and the current-state, ready for new game */
     public void newGame() {
-        for (int row = 0; row < Board.ROWS; ++row) {
+        board.newGame();
+        /*for (int row = 0; row < Board.ROWS; ++row) {
             for (int col = 0; col < Board.COLS; ++col) {
                 board.cells[row][col].content = Seed.NO_SEED; // all cells empty
             }
-        }
+        }*/
         currentPlayer = Seed.CROSS;    // cross plays first
         currentState = State.PLAYING;  // ready to play
     }
