@@ -100,6 +100,7 @@ public class Board {
         }
 
         // Draw all the cells
+        // coba coba dehh
         for (int row = 0; row < ROWS; ++row) {
             for (int col = 0; col < COLS; ++col) {
                 cells[row][col].paint(g);  // ask the cell to paint itself
