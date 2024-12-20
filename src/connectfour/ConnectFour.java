@@ -18,6 +18,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import javax.sound.sampled.*;
 import javax.swing.*;
+
 /**
  * Tic-Tac-Toe: Two-player Graphic version with better OO design.
  * The Board and Cell classes are separated in their own classes.
@@ -33,6 +34,12 @@ public class ConnectFour extends JPanel {
     public static final Color COLOR_NOUGHT = new Color(64, 154, 225); // Blue #409AE1
     public static final Font FONT_STATUS = new Font("OCR A Extended", Font.PLAIN, 14);
 
+    // Timer constants
+    private static final int TIME_LIMIT_SECONDS = 10;
+    private static final Color COLOR_TIMER_FULL = new Color(76, 175, 80); // Green
+    private static final Color COLOR_TIMER_MEDIUM = new Color(255, 152, 0); // Orange
+    private static final Color COLOR_TIMER_LOW = new Color(244, 67, 54); // Red
+
     // Define game objects
     private Board board;         // the game board
     private State currentState;  // the current state of the game
@@ -41,7 +48,12 @@ public class ConnectFour extends JPanel {
     private JButton restartButton; // restart the game
     private BGM bgm;
     private JButton toggleMusicButton;
+    private JPanel timerPanel;   // Panel for visual timer representation
 
+    // Timer-related variables
+    private Timer gameTimer;
+    private int remainingTime;
+    private TimerTask currentTimerTask;
 
     /** Constructor to setup the UI and game components */
     public ConnectFour() {
@@ -61,13 +73,12 @@ public class ConnectFour extends JPanel {
                 int col = mouseX / Cell.SIZE;
 
                 if (currentState == State.PLAYING) {
-                    //SoundEffect.EAT_FOOD.play();
                     if (col >= 0 && col < Board.COLS) {
                         // Look for an empty cell starting from the bottom row
                         for (int rowI = Board.ROWS -1; rowI >= 0; rowI--) {
                             if (board.cells[rowI][col].content == Seed.NO_SEED) {
                                 board.cells[rowI][col].content = currentPlayer; // Make a move
-                                //board.stepGame(currentPlayer, rowI, col); // update state
+
                                 // Check if the move results in a win
                                 if (board.hasWon(currentPlayer, rowI, col)) {
                                     currentState = (currentPlayer == Seed.CROSS) ? State.CROSS_WON : State.NOUGHT_WON;
@@ -92,13 +103,19 @@ public class ConnectFour extends JPanel {
                                 } else {
                                     SoundEffect.NOUGHT.play();
                                 }
+
+                                // Stop the current timer
+                                stopTimer();
+
                                 // Switch player
                                 currentPlayer = (currentPlayer == Seed.CROSS) ? Seed.NOUGHT : Seed.CROSS;
+
+                                // Start timer for new player
+                                startTimer();
                                 break;
                             }
                         }
                     }
-
                 } else {        // game over
                     newGame();  // restart the game
                     SoundEffect.DIE.play();
@@ -107,6 +124,47 @@ public class ConnectFour extends JPanel {
                 repaint();  // Callback paintComponent().
             }
         });
+
+        // Create visual timer panel
+        timerPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+
+                // Calculate timer visualization
+                int panelWidth = getWidth();
+                int panelHeight = getHeight();
+
+                // Calculate width based on remaining time
+                double timeRatio = (double) remainingTime / TIME_LIMIT_SECONDS;
+                int timerWidth = (int) (panelWidth * timeRatio);
+
+                // Choose color based on remaining time
+                Color timerColor;
+                if (timeRatio > 0.5) {
+                    timerColor = COLOR_TIMER_FULL;
+                } else if (timeRatio > 0.25) {
+                    timerColor = COLOR_TIMER_MEDIUM;
+                } else {
+                    timerColor = COLOR_TIMER_LOW;
+                }
+
+                // Draw timer bar
+                g.setColor(timerColor);
+                g.fillRect(0, 0, timerWidth, panelHeight);
+
+                // Draw time text
+                g.setColor(Color.BLACK);
+                g.setFont(new Font("Arial", Font.BOLD, 12));
+                String timeText = remainingTime + "s";
+                FontMetrics fm = g.getFontMetrics();
+                int textX = (panelWidth - fm.stringWidth(timeText)) / 2;
+                int textY = (panelHeight + fm.getAscent() - fm.getDescent()) / 2;
+                g.drawString(timeText, textX, textY);
+            }
+        };
+        timerPanel.setPreferredSize(new Dimension(Board.CANVAS_WIDTH, 20));
+        timerPanel.setBackground(Color.LIGHT_GRAY);
 
         // Tombol toggle musik
         toggleMusicButton = new JButton("Disable Music"); // Set default to "Disable Music"
@@ -121,10 +179,6 @@ public class ConnectFour extends JPanel {
             }
             updateMusicButtonText();  // Update the button text
         });
-
-
-        // Set the layout of the main panel
-        super.setLayout(new BorderLayout());
 
         // Set up status bar
         statusBar = new JLabel();
@@ -144,46 +198,90 @@ public class ConnectFour extends JPanel {
             repaint();  // Refresh the view to reset the game
         });
 
-        // Create a panel to hold the status bar and restart button horizontally
-        JPanel topPanel = new JPanel();
-        topPanel.setLayout(new BorderLayout()); // Use BorderLayout to place components left and right
-        topPanel.add(statusBar, BorderLayout.WEST); // Add status bar to the left
-        topPanel.add(restartButton, BorderLayout.EAST); // Add restart button to the right
-
-        // Create a panel to hold the toggle music button
+        // Create a panel for the music button
         JPanel musicPanel = new JPanel();
-        musicPanel.add(toggleMusicButton); // Add the toggle music button
+        musicPanel.add(toggleMusicButton);
 
-        // Add the music panel to the topPanel (if you want to put it at the top-right, for example)
-        topPanel.add(musicPanel, BorderLayout.CENTER); // Add music panel in the center
+        // Create a panel for status and restart button
+        JPanel controlPanel = new JPanel(new BorderLayout());
+        controlPanel.add(statusBar, BorderLayout.WEST);
+        controlPanel.add(restartButton, BorderLayout.EAST);
+        controlPanel.add(musicPanel, BorderLayout.CENTER);
 
-        // Add the topPanel to the main panel at the top (North)
-        super.add(topPanel, BorderLayout.SOUTH);
+        // Create the bottom panel with timer first, then controls
+        JPanel bottomPanel = new JPanel(new BorderLayout());
+        bottomPanel.add(timerPanel, BorderLayout.NORTH);      // Timer at the top of bottom panel
+        bottomPanel.add(controlPanel, BorderLayout.CENTER);   // Controls below timer
 
-        // Set preferred size, accounting for the top panel and the game board
-        super.setPreferredSize(new Dimension(Board.CANVAS_WIDTH, Board.CANVAS_HEIGHT + 60)); // Increased height for topPanel
+        // Add the main game board to the center
+        super.setLayout(new BorderLayout());
+        super.add(bottomPanel, BorderLayout.SOUTH);          // All controls at the bottom
+
+        // Set up the final panel size
+        super.setPreferredSize(new Dimension(Board.CANVAS_WIDTH, Board.CANVAS_HEIGHT + 80));
         super.setBorder(BorderFactory.createLineBorder(COLOR_BG_STATUS, 2, false));
 
         // Initialize game
-        //initGame();
+        initGame();
         newGame();
     }
 
     /** Initialize the game (run once) */
     public void initGame() {
         board = new Board();  // allocate the game-board
+        gameTimer = new Timer(); // initialize the timer
+    }
+
+    private void startTimer() {
+        stopTimer();
+        remainingTime = TIME_LIMIT_SECONDS;
+
+        currentTimerTask = new TimerTask() {
+            @Override
+            public void run() {
+                remainingTime--;
+
+                SwingUtilities.invokeLater(() -> {
+                    timerPanel.repaint();
+
+                    if (remainingTime <= 0) {
+                        // Switch player due to time out
+                        currentPlayer = (currentPlayer == Seed.CROSS) ? Seed.NOUGHT : Seed.CROSS;
+
+                        // Stop current timer
+                        stopTimer();
+
+                        // Start timer for new player
+                        startTimer();
+
+                        // Play sound effect
+                        SoundEffect.DIE.play();
+
+                        // Repaint to update status
+                        repaint();
+                    }
+                });
+            }
+        };
+
+        gameTimer.scheduleAtFixedRate(currentTimerTask, 1000, 1000);
+    }
+
+    private void stopTimer() {
+        if (currentTimerTask != null) {
+            currentTimerTask.cancel();
+        }
     }
 
     /** Reset the game-board contents and the current-state, ready for new game */
     public void newGame() {
         board.newGame();
-        /*for (int row = 0; row < Board.ROWS; ++row) {
-            for (int col = 0; col < Board.COLS; ++col) {
-                board.cells[row][col].content = Seed.NO_SEED; // all cells empty
-            }
-        }*/
         currentPlayer = Seed.CROSS;    // cross plays first
         currentState = State.PLAYING;  // ready to play
+
+        // Reset and start timer
+        stopTimer();
+        startTimer();
     }
 
     /** Custom painting codes on this JPanel */
@@ -201,15 +299,17 @@ public class ConnectFour extends JPanel {
         } else if (currentState == State.DRAW) {
             statusBar.setForeground(Color.RED);
             statusBar.setText("It's a Draw! Click to play again.");
+            stopTimer();
         } else if (currentState == State.CROSS_WON) {
             statusBar.setForeground(Color.RED);
             statusBar.setText("'X' Won! Click to play again.");
+            stopTimer();
         } else if (currentState == State.NOUGHT_WON) {
             statusBar.setForeground(Color.RED);
             statusBar.setText("'O' Won! Click to play again.");
+            stopTimer();
         }
     }
-
 
     /** The entry "main" method */
     public static void play() {
@@ -226,14 +326,11 @@ public class ConnectFour extends JPanel {
             }
         });
     }
-
-
     private void updateMusicButtonText() {
         if (bgm.isMusicEnabled()) {
-            toggleMusicButton.setText("Disable Music"); // If music is playing, set text to "Disable Music"
+            toggleMusicButton.setText("Disable Music");
         } else {
-            toggleMusicButton.setText("Enable Music"); // If music is stopped, set text to "Enable Music"
+            toggleMusicButton.setText("Enable Music");
         }
     }
-
 }
