@@ -12,6 +12,11 @@ package connectfour;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
+import java.io.IOException;
+import java.util.Timer;
+import java.util.TimerTask;
+import javax.sound.sampled.*;
 import javax.swing.*;
 /**
  * Tic-Tac-Toe: Two-player Graphic version with better OO design.
@@ -34,9 +39,16 @@ public class ConnectFour extends JPanel {
     private Seed currentPlayer;  // the current player
     private JLabel statusBar;    // for displaying status message
     private JButton restartButton; // restart the game
+    private BGM bgm;
+    private JButton toggleMusicButton;
+
 
     /** Constructor to setup the UI and game components */
     public ConnectFour() {
+        bgm = new BGM("src/audio/bgm-ttt.wav");
+        bgm.play();
+
+        board = new Board();
 
         // This JPanel fires MouseEvent
         super.addMouseListener(new MouseAdapter() {
@@ -96,6 +108,21 @@ public class ConnectFour extends JPanel {
             }
         });
 
+        // Tombol toggle musik
+        toggleMusicButton = new JButton("Disable Music"); // Set default to "Disable Music"
+        toggleMusicButton.setPreferredSize(new Dimension(120, 30)); // Sesuaikan ukuran tombol
+        toggleMusicButton.addActionListener(e -> {
+            if (bgm.isMusicEnabled()) {
+                bgm.stop();  // Stop music if it's currently playing
+                System.out.println("Music stopped");
+            } else {
+                bgm.play();  // Start playing music if it's currently stopped
+                System.out.println("Music started");
+            }
+            updateMusicButtonText();  // Update the button text
+        });
+
+
         // Set the layout of the main panel
         super.setLayout(new BorderLayout());
 
@@ -123,6 +150,13 @@ public class ConnectFour extends JPanel {
         topPanel.add(statusBar, BorderLayout.WEST); // Add status bar to the left
         topPanel.add(restartButton, BorderLayout.EAST); // Add restart button to the right
 
+        // Create a panel to hold the toggle music button
+        JPanel musicPanel = new JPanel();
+        musicPanel.add(toggleMusicButton); // Add the toggle music button
+
+        // Add the music panel to the topPanel (if you want to put it at the top-right, for example)
+        topPanel.add(musicPanel, BorderLayout.CENTER); // Add music panel in the center
+
         // Add the topPanel to the main panel at the top (North)
         super.add(topPanel, BorderLayout.SOUTH);
 
@@ -131,7 +165,7 @@ public class ConnectFour extends JPanel {
         super.setBorder(BorderFactory.createLineBorder(COLOR_BG_STATUS, 2, false));
 
         // Initialize game
-        initGame();
+        //initGame();
         newGame();
     }
 
@@ -192,4 +226,14 @@ public class ConnectFour extends JPanel {
             }
         });
     }
+
+
+    private void updateMusicButtonText() {
+        if (bgm.isMusicEnabled()) {
+            toggleMusicButton.setText("Disable Music"); // If music is playing, set text to "Disable Music"
+        } else {
+            toggleMusicButton.setText("Enable Music"); // If music is stopped, set text to "Enable Music"
+        }
+    }
+
 }
