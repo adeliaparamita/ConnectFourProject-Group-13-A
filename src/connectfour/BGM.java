@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 
 public class BGM {
+
     private Clip clip;  // Audio clip untuk background music
     private boolean isMusicEnabled = true; // Flag untuk status musik
 
@@ -32,6 +33,7 @@ public class BGM {
             clip.start();
         }
     }
+
 
     // Method untuk menghentikan musik
     public void stop() {

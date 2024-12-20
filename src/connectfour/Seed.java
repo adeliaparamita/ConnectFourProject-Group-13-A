@@ -27,8 +27,8 @@ import javax.swing.ImageIcon;
  *  however, not supported.
  */
 public enum Seed {   // to save as "Seed.java"
-    CROSS("X", "images/meow1.jpg"),   // displayName, imageFilename
-    NOUGHT("O", "images/guk1.jpg"),
+    CROSS("X", "images/cat.png"),   // displayName, imageFilename
+    NOUGHT("O", "images/dog.png"),
     NO_SEED(" ", null);
 
     // Private variables

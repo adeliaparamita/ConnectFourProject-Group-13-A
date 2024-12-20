@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
+import javax.imageio.ImageIO;
 import javax.sound.sampled.*;
 import javax.swing.*;
 
@@ -28,11 +29,13 @@ public class ConnectFour extends JPanel {
 
     // Define named constants for the drawing graphics
     public static final String TITLE = "Connect Four";
-    public static final Color COLOR_BG = Color.WHITE;
+    //public static final Color COLOR_BG = Color.BLACK;
     public static final Color COLOR_BG_STATUS = new Color(216, 216, 216);
     public static final Color COLOR_CROSS = new Color(239, 105, 80);  // Red #EF6950
     public static final Color COLOR_NOUGHT = new Color(64, 154, 225); // Blue #409AE1
     public static final Font FONT_STATUS = new Font("OCR A Extended", Font.PLAIN, 14);
+
+    private Image backgroundImage;
 
     // Timer constants
     private static final int TIME_LIMIT_SECONDS = 10;
@@ -47,7 +50,7 @@ public class ConnectFour extends JPanel {
     private JLabel statusBar;    // for displaying status message
     private JButton restartButton; // restart the game
     private BGM bgm;
-    private JButton toggleMusicButton;
+    //private JButton toggleMusicButton;
     private JPanel timerPanel;   // Panel for visual timer representation
 
     // Timer-related variables
@@ -55,8 +58,16 @@ public class ConnectFour extends JPanel {
     private int remainingTime;
     private TimerTask currentTimerTask;
 
+
     /** Constructor to setup the UI and game components */
     public ConnectFour() {
+        // Load the background image
+        try {
+            backgroundImage = ImageIO.read(new File("src/images/bg2.jpg")); // Update the path to your image
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         bgm = new BGM("src/audio/bgm-ttt.wav");
         bgm.play();
 
@@ -166,20 +177,6 @@ public class ConnectFour extends JPanel {
         timerPanel.setPreferredSize(new Dimension(Board.CANVAS_WIDTH, 20));
         timerPanel.setBackground(Color.LIGHT_GRAY);
 
-        // Tombol toggle musik
-        toggleMusicButton = new JButton("Disable Music"); // Set default to "Disable Music"
-        toggleMusicButton.setPreferredSize(new Dimension(120, 30)); // Sesuaikan ukuran tombol
-        toggleMusicButton.addActionListener(e -> {
-            if (bgm.isMusicEnabled()) {
-                bgm.stop();  // Stop music if it's currently playing
-                System.out.println("Music stopped");
-            } else {
-                bgm.play();  // Start playing music if it's currently stopped
-                System.out.println("Music started");
-            }
-            updateMusicButtonText();  // Update the button text
-        });
-
         // Set up status bar
         statusBar = new JLabel();
         statusBar.setFont(FONT_STATUS);
@@ -200,13 +197,11 @@ public class ConnectFour extends JPanel {
 
         // Create a panel for the music button
         JPanel musicPanel = new JPanel();
-        musicPanel.add(toggleMusicButton);
 
         // Create a panel for status and restart button
         JPanel controlPanel = new JPanel(new BorderLayout());
         controlPanel.add(statusBar, BorderLayout.WEST);
         controlPanel.add(restartButton, BorderLayout.EAST);
-        controlPanel.add(musicPanel, BorderLayout.CENTER);
 
         // Create the bottom panel with timer first, then controls
         JPanel bottomPanel = new JPanel(new BorderLayout());
@@ -288,7 +283,15 @@ public class ConnectFour extends JPanel {
     @Override
     public void paintComponent(Graphics g) {  // Callback via repaint()
         super.paintComponent(g);
-        setBackground(COLOR_BG); // set its background color
+        //setBackground(COLOR_BG); // set its background color
+
+        // Draw background image if it exists
+        if (backgroundImage != null) {
+            //g.drawImage(backgroundImage, 0, 0, this);  // Draw image at (0, 0) with current JPanel's size
+            g.drawImage(backgroundImage, 0, 0, Board.CANVAS_WIDTH, Board.CANVAS_HEIGHT, null);
+        } else {
+            setBackground(Color.BLACK); // Fallback color in case image is not loaded
+        }
 
         board.paint(g);  // ask the game board to paint itself
 
@@ -325,12 +328,5 @@ public class ConnectFour extends JPanel {
                 frame.setVisible(true);            // show it
             }
         });
-    }
-    private void updateMusicButtonText() {
-        if (bgm.isMusicEnabled()) {
-            toggleMusicButton.setText("Disable Music");
-        } else {
-            toggleMusicButton.setText("Enable Music");
-        }
     }
 }
